@@ -32,9 +32,14 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#0d0d0d] text-white rounded-2xl mb-4 shadow-xl">
-            <span className="text-2xl font-black italic">CA</span>
-          </div>
+          {/* <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl mb-4 shadow-xl">
+  <img 
+    src="../assets/dark-logo.png"
+    alt="Code Axis Logo"
+    className="w-10 h-10 object-contain"
+  />
+</div> */}
+
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Welcome Back</h1>
           <p className="text-gray-500 mt-2 font-medium">Log in to manage your agency portal</p>
         </div>
@@ -100,9 +105,9 @@ const Login: React.FC = () => {
           </div>
         </div>
 
-        <p className="text-center mt-8 text-sm text-gray-400">
+        {/* <p className="text-center mt-8 text-sm text-gray-400">
           Default Creds: <span className="text-gray-600 font-mono">admin / password123</span>
-        </p>
+        </p> */}
       </div>
     </div>
   );
