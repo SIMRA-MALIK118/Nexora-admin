@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import ProjectsList from './pages/Projects/ProjectsList';
 import BlogsList from './pages/Blogs/BlogsList';
 import TeamList from './pages/Team/TeamList';
+import CareersList from './pages/Career/CareersList';
 import Login from './pages/Login';
 import { AppRoute } from './types';
 
@@ -43,6 +44,10 @@ const App: React.FC = () => {
         <Route
           path={AppRoute.TEAM}
           element={<ProtectedRoute><Layout><TeamList /></Layout></ProtectedRoute>}
+        />
+         <Route
+          path={AppRoute.CAREERS}
+          element={<ProtectedRoute><Layout><CareersList /></Layout></ProtectedRoute>}
         />
         {/* Redirect unknown routes to Dashboard (which will trigger protection if needed) */}
         <Route path="*" element={<Navigate to={AppRoute.DASHBOARD} replace />} />

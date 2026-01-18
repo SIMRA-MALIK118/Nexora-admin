@@ -7,7 +7,8 @@ import {
   FolderKanban,
   LogOut,
   X,
-  Users
+  Users,
+  Briefcase
 } from 'lucide-react';
 import { AppRoute } from '../types';
 
@@ -25,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Projects', icon: FolderKanban, path: AppRoute.PROJECTS },
     { name: 'Blogs', icon: FileText, path: AppRoute.BLOGS },
     { name: 'Team', icon: Users, path: AppRoute.TEAM },
+    { name: 'Careers', icon: Briefcase, path: AppRoute.CAREERS },
   ];
 
   const handleLogout = () => {

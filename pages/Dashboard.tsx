@@ -21,17 +21,19 @@ const Dashboard: React.FC = () => {
   const [projectCount, setProjectCount] = useState(0);
   const [blogCount, setBlogCount] = useState(0);
   const [teamCount, setTeamCount] = useState(0);
-
+const [careerCount, setCareerCount] = useState(0);
   useEffect(() => {
     const fetchCounts = async () => {
       try {
         const projectsSnap = await getDocs(collection(db, 'projects'));
         const blogsSnap = await getDocs(collection(db, 'blogs'));
         const teamSnap = await getDocs(collection(db, 'teamMembers'));
+        const careerSnap = await getDocs(collection(db, 'career'));
 
         setProjectCount(projectsSnap.size);
         setBlogCount(blogsSnap.size);
         setTeamCount(teamSnap.size);
+        setCareerCount(careerSnap.size);
       } catch (error) {
         console.error('Error fetching counts:', error);
       }
@@ -65,6 +67,11 @@ const Dashboard: React.FC = () => {
         <StatCard
           title="Team Members"
           value={teamCount}
+          icon={Users}
+        />
+         <StatCard
+          title="Career"
+          value={careerCount}
           icon={Users}
         />
       </div>

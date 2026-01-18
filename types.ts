@@ -5,6 +5,7 @@ export enum AppRoute {
   PROJECTS = '/projects',
   BLOGS = '/blogs',
   TEAM = '/team',
+  CAREERS = '/careers',
 }
 
 export interface Project {
@@ -42,16 +43,21 @@ export interface TeamMember {
 
 export interface Job {
   id: string;
-  title: string;
-  type: string;
+  role: string;                        // corresponds to job role/title
+  type: 'Full-time' | 'Contract' | 'Remote';
   location: string;
-  department: string;
-  postedDate: string;
+  status: 'Open' | 'Closed';
+  imageUrl?: string;
+  department?: string;
+  postedDate?: string;
+  createdAt?: any;                     // Firestore timestamp
+  updatedAt?: any;                     // Firestore timestamp
 }
 
-export interface ServiceItem {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-}
+
+// export interface ServiceItem {
+//   id: string;
+//   title: string;
+//   description: string;
+//   icon: string;
+// }

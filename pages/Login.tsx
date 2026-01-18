@@ -18,7 +18,7 @@ const Login: React.FC = () => {
 
     // Simulate API call
     setTimeout(() => {
-      if (username === 'Nexora Web' && password === 'password385') {
+      if (username === 'Admin' && password === 'password123') {
         localStorage.setItem('ca_admin_token', 'authenticated_session_true');
         navigate(AppRoute.DASHBOARD);
       } else {
