@@ -1,11 +1,12 @@
 
-import { Project, Blog, Job, ServiceItem } from '../types';
+import { Project, Blog, Job, ServiceItem, TeamMember } from '../types';
 
 const STORAGE_KEYS = {
   PROJECTS: 'ca_admin_projects',
   BLOGS: 'ca_admin_blogs',
   JOBS: 'ca_admin_jobs',
-  SERVICES: 'ca_admin_services'
+  SERVICES: 'ca_admin_services',
+  TEAM: 'ca_admin_team'
 };
 
 // Generic storage helper
@@ -51,5 +52,17 @@ export const JobService = {
   delete: (id: string) => {
     const jobs = get<Job>(STORAGE_KEYS.JOBS, []);
     save(STORAGE_KEYS.JOBS, jobs.filter(j => j.id !== id));
+  }
+};
+
+export const TeamService = {
+  getAll: (initial: TeamMember[]) => get<TeamMember>(STORAGE_KEYS.TEAM, initial),
+  add: (member: TeamMember) => {
+    const members = get<TeamMember>(STORAGE_KEYS.TEAM, []);
+    save(STORAGE_KEYS.TEAM, [member, ...members]);
+  },
+  delete: (id: string) => {
+    const members = get<TeamMember>(STORAGE_KEYS.TEAM, []);
+    save(STORAGE_KEYS.TEAM, members.filter(m => m.id !== id));
   }
 };

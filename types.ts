@@ -3,9 +3,8 @@ export enum AppRoute {
   DASHBOARD = '/',
   LOGIN = '/login',
   PROJECTS = '/projects',
-  SERVICES = '/services',
   BLOGS = '/blogs',
-  CAREERS = '/careers',
+  TEAM = '/team',
 }
 
 export interface Project {
@@ -28,18 +27,31 @@ export interface Blog {
   imageUrl?: string;
 }
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio?: string;
+  imageUrl?: string;
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    github?: string;
+  };
+}
+
 export interface Job {
   id: string;
-  role: string;
+  title: string;
+  type: string;
   location: string;
-  type: 'Full-time' | 'Contract' | 'Remote';
-  status: 'Open' | 'Closed';
-  imageUrl?: string;
+  department: string;
+  postedDate: string;
 }
 
 export interface ServiceItem {
   id: string;
-  name: string;
+  title: string;
   description: string;
   icon: string;
 }

@@ -3,12 +3,11 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Briefcase,
-  Settings,
   FileText,
   FolderKanban,
   LogOut,
-  X
+  X,
+  Users
 } from 'lucide-react';
 import { AppRoute } from '../types';
 
@@ -24,9 +23,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: AppRoute.DASHBOARD },
     { name: 'Projects', icon: FolderKanban, path: AppRoute.PROJECTS },
-    { name: 'Services', icon: Settings, path: AppRoute.SERVICES },
     { name: 'Blogs', icon: FileText, path: AppRoute.BLOGS },
-    { name: 'Careers', icon: Briefcase, path: AppRoute.CAREERS },
+    { name: 'Team', icon: Users, path: AppRoute.TEAM },
   ];
 
   const handleLogout = () => {
@@ -44,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <img
             src="../assets/Logo.png"
             alt="Code Axis Logo"
-            className="w-30 h-20 object-contain"
+            className="w-35 h-30 object-contain"
           />
         </div>
 
@@ -67,8 +65,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   to={item.path}
                   onClick={() => onClose()}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                      ? 'bg-white text-black font-semibold shadow-lg shadow-white/10'
-                      : 'hover:bg-white/10 text-gray-400 hover:text-white'
+                    ? 'bg-white text-black font-semibold shadow-lg shadow-white/10'
+                    : 'hover:bg-white/10 text-gray-400 hover:text-white'
                     }`}
                 >
                   <item.icon size={20} />

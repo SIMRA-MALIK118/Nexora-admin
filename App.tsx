@@ -5,8 +5,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import ProjectsList from './pages/Projects/ProjectsList';
 import BlogsList from './pages/Blogs/BlogsList';
-import JobsList from './pages/Careers/JobsList';
-import ServicesList from './pages/Services/ServicesList';
+import TeamList from './pages/Team/TeamList';
 import Login from './pages/Login';
 import { AppRoute } from './types';
 
@@ -27,29 +26,24 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path={AppRoute.LOGIN} element={<Login />} />
-        
-        {/* Protected Layout Routes */}
-        <Route 
-          path={AppRoute.DASHBOARD} 
-          element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} 
-        />
-        <Route 
-          path={AppRoute.PROJECTS} 
-          element={<ProtectedRoute><Layout><ProjectsList /></Layout></ProtectedRoute>} 
-        />
-        <Route 
-          path={AppRoute.SERVICES} 
-          element={<ProtectedRoute><Layout><ServicesList /></Layout></ProtectedRoute>} 
-        />
-        <Route 
-          path={AppRoute.BLOGS} 
-          element={<ProtectedRoute><Layout><BlogsList /></Layout></ProtectedRoute>} 
-        />
-        <Route 
-          path={AppRoute.CAREERS} 
-          element={<ProtectedRoute><Layout><JobsList /></Layout></ProtectedRoute>} 
-        />
 
+        {/* Protected Layout Routes */}
+        <Route
+          path={AppRoute.DASHBOARD}
+          element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>}
+        />
+        <Route
+          path={AppRoute.PROJECTS}
+          element={<ProtectedRoute><Layout><ProjectsList /></Layout></ProtectedRoute>}
+        />
+        <Route
+          path={AppRoute.BLOGS}
+          element={<ProtectedRoute><Layout><BlogsList /></Layout></ProtectedRoute>}
+        />
+        <Route
+          path={AppRoute.TEAM}
+          element={<ProtectedRoute><Layout><TeamList /></Layout></ProtectedRoute>}
+        />
         {/* Redirect unknown routes to Dashboard (which will trigger protection if needed) */}
         <Route path="*" element={<Navigate to={AppRoute.DASHBOARD} replace />} />
       </Routes>
