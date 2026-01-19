@@ -21,7 +21,7 @@ const JobsList: React.FC = () => {
   // 🔹 Fetch jobs from Firebase
   useEffect(() => {
     const fetchJobs = async () => {
-      const snapshot = await getDocs(collection(db, 'jobs'));
+      const snapshot = await getDocs(collection(db, 'career'));
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Job[];
       setJobs(data);
     };
