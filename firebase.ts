@@ -5,12 +5,13 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAMXM0xWW71SmSTMdd1u-qbFB6emb-Lmfs",
-  authDomain: "code-axis-web.firebaseapp.com",
-  projectId: "code-axis-web",
-  storageBucket: "code-axis-web.firebasestorage.app",
-  messagingSenderId: "949198147772",
-  appId: "1:949198147772:web:3b7cc71d377282791080b9"
+  apiKey: "AIzaSyCcG-AhoJ9Q_enaVmOgQU2ph8QJl-JiUhM",
+  authDomain: "nexora-website-51e26.firebaseapp.com",
+  projectId: "nexora-website-51e26",
+  storageBucket: "nexora-website-51e26.firebasestorage.app",
+  messagingSenderId: "490615831993",
+  appId: "1:490615831993:web:f76d72dc0c9945a4294a68",
+  measurementId: "G-S9GTGGF16L"
 };
 
 const app = initializeApp(firebaseConfig);
