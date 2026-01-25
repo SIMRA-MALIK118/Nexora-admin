@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <div className="p-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src="../assets/Logo-crop.png"
+            src="../assets/Logo.png"
             alt="Code Axis Logo"
             className="w-35 h-30 object-contain"
           />
