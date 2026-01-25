@@ -28,12 +28,12 @@ const [careerCount, setCareerCount] = useState(0);
         const projectsSnap = await getDocs(collection(db, 'projects'));
         const blogsSnap = await getDocs(collection(db, 'blogs'));
         const teamSnap = await getDocs(collection(db, 'teamMembers'));
-        const careerSnap = await getDocs(collection(db, 'career'));
+        // const careerSnap = await getDocs(collection(db, 'career'));
 
         setProjectCount(projectsSnap.size);
         setBlogCount(blogsSnap.size);
         setTeamCount(teamSnap.size);
-        setCareerCount(careerSnap.size);
+        // setCareerCount(careerSnap.size);
       } catch (error) {
         console.error('Error fetching counts:', error);
       }
@@ -69,11 +69,11 @@ const [careerCount, setCareerCount] = useState(0);
           value={teamCount}
           icon={Users}
         />
-         <StatCard
+         {/* <StatCard
           title="Career"
           value={careerCount}
           icon={Users}
-        />
+        /> */}
       </div>
     </div>
   );

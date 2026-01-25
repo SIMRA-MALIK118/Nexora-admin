@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Projects', icon: FolderKanban, path: AppRoute.PROJECTS },
     { name: 'Blogs', icon: FileText, path: AppRoute.BLOGS },
     { name: 'Team', icon: Users, path: AppRoute.TEAM },
-    { name: 'Careers', icon: Briefcase, path: AppRoute.CAREERS },
+    // { name: 'Careers', icon: Briefcase, path: AppRoute.CAREERS },
   ];
 
   const handleLogout = () => {
