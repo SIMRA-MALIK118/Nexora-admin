@@ -10,6 +10,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { isCloudinaryConfigured, uploadImageToCloudinary } from '../../services/cloudinaryUpload';
 
 import {
   Plus,
@@ -22,6 +23,19 @@ import {
   Upload,
   Link as LinkIcon
 } from 'lucide-react';
+
+const PROJECT_TYPE_OPTIONS = [
+  'Web App',
+  'Mobile App',
+  'Website',
+  'Design',
+  'Backend',
+  'AI/ML',
+  'Blockchain',
+  'E-Commerce',
+  'Dashboard',
+  'Other',
+];
 
 const TECHNOLOGY_OPTIONS = [
   'React',
@@ -102,9 +116,12 @@ const ProjectsList: React.FC = () => {
   }, []);
 
   const uploadImageAndGetUrl = async (file: File): Promise<string> => {
+    if (isCloudinaryConfigured()) {
+      return uploadImageToCloudinary(file);
+    }
     const name = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
     const storageRef = ref(storage, `projects/${name}`);
-    await uploadBytes(storageRef, file);
+    await uploadBytes(storageRef, file, { contentType: file.type || 'image/jpeg' });
     return getDownloadURL(storageRef);
   };
 
@@ -117,11 +134,35 @@ const ProjectsList: React.FC = () => {
 
       if (imageFile) {
         setIsUploadingImage(true);
-        imageUrl = await uploadImageAndGetUrl(imageFile);
+        try {
+          imageUrl = await uploadImageAndGetUrl(imageFile);
+        } catch (uploadErr: unknown) {
+          const msg = uploadErr instanceof Error ? uploadErr.message : String(uploadErr);
+          const isCors = /cors|blocked|preflight|ERR_FAILED|Access to XMLHttpRequest/i.test(msg);
+          const isPermission = /permission|denied|403|rules/i.test(msg);
+          setIsUploadingImage(false);
+          if (isCors) {
+            alert(
+              'Image upload blocked by browser (CORS).\n\n' +
+              'Option 1: Use "Or paste image URL" below and paste a direct image link, then Save.\n\n' +
+              'Option 2: Use Cloudinary – copy .env.example to .env and add your Cloudinary cloud name & upload preset (see CLOUDINARY_SETUP.txt). Restart dev server.'
+            );
+            return;
+          }
+          if (isPermission) {
+            alert(
+              'Image upload failed: Storage permission denied.\n\n' +
+              'Fix: Firebase Console → Storage → Rules → set "allow read, write: if true;" for testing, then Publish.'
+            );
+            return;
+          }
+          alert('Image upload failed: ' + msg);
+          return;
+        }
         setIsUploadingImage(false);
       }
 
-      const payload = {
+      const basePayload = {
         title: formData.title,
         description: formData.description,
         client: formData.technologies[0] || formData.client || '',
@@ -130,14 +171,19 @@ const ProjectsList: React.FC = () => {
         imageUrl,
         technologies: formData.technologies,
         liveProjectLink: formData.liveProjectLink || '',
-        date: editingId ? undefined : new Date().toLocaleDateString(),
-        ...(editingId ? { updatedAt: serverTimestamp() } : { createdAt: serverTimestamp() }),
       };
 
       if (editingId) {
-        await updateDoc(doc(db, 'projects', editingId), payload);
+        await updateDoc(doc(db, 'projects', editingId), {
+          ...basePayload,
+          updatedAt: serverTimestamp(),
+        });
       } else {
-        await addDoc(collection(db, 'projects'), payload);
+        await addDoc(collection(db, 'projects'), {
+          ...basePayload,
+          date: new Date().toLocaleDateString(),
+          createdAt: serverTimestamp(),
+        });
       }
 
       resetForm();
@@ -298,6 +344,20 @@ const ProjectsList: React.FC = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Project Type</label>
+                <p className="text-xs text-gray-500 mb-1">Select type: Web App, Mobile App, Website, etc.</p>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                >
+                  {PROJECT_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Select Technologies</label>
                 <div className="border border-gray-300 rounded-lg p-2 max-h-48 overflow-y-auto flex flex-col gap-1">
                   {TECHNOLOGY_OPTIONS.map((tech) => (
@@ -327,7 +387,7 @@ const ProjectsList: React.FC = () => {
                   <LinkIcon size={14} className="inline mr-1" /> Live Project Link
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   placeholder="https://..."
                   value={formData.liveProjectLink}
                   onChange={(e) => setFormData({ ...formData, liveProjectLink: e.target.value })}
@@ -355,7 +415,7 @@ const ProjectsList: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio Image</label>
-                <p className="text-xs text-gray-500 mb-2">Choose an image from your desktop (optional)</p>
+                <p className="text-xs text-gray-500 mb-2">Choose file from desktop (optional). If upload fails, use URL below.</p>
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-black hover:bg-gray-50 transition-colors">
                     <Upload size={20} className="text-gray-500" />
@@ -369,12 +429,26 @@ const ProjectsList: React.FC = () => {
                       className="hidden"
                     />
                   </label>
+                  <div>
+                    <span className="text-xs text-gray-500 block mb-1">Or paste image URL (works when file upload is blocked):</span>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.imageUrl}
+                      onChange={(e) => {
+                        setFormData((p) => ({ ...p, imageUrl: e.target.value }));
+                        if (!imageFile) setImagePreview(e.target.value);
+                      }}
+                      className="w-full border border-gray-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-black"
+                    />
+                  </div>
                   {imagePreview ? (
                     <div className="relative w-full h-40 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
                       <img
                         src={imagePreview}
                         alt="Preview"
                         className="w-full h-full object-cover"
+                        onError={() => setImagePreview('')}
                       />
                       <button
                         type="button"
@@ -395,7 +469,7 @@ const ProjectsList: React.FC = () => {
                   )}
                 </div>
                 {!imagePreview && formData.imageUrl && (
-                  <p className="text-xs text-gray-500 mt-1">Current image will be kept if you don’t choose a new file.</p>
+                  <p className="text-xs text-gray-500 mt-1">Current image URL will be used if you don’t choose a new file.</p>
                 )}
               </div>
 

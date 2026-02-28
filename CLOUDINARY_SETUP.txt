@@ -1,0 +1,54 @@
+============================================
+  CLOUDINARY SETUP – Image upload without CORS
+============================================
+
+Firebase Storage se localhost par CORS ki wajah se upload block ho raha tha.
+Cloudinary use karne se browser se direct upload kaam karega (free account).
+
+STEP 1 – Account banao
+----------------------
+1. Open: https://cloudinary.com/users/register_free
+2. Sign up (free).
+3. Login karke Dashboard pe jao.
+
+STEP 2 – Cloud name copy karo
+-----------------------------
+Dashboard pe upar apna "Cloud name" dikhega (e.g. "dxyz123abc").
+Us ko copy karo.
+
+STEP 3 – Unsigned Upload Preset banao
+--------------------------------------
+1. Left menu me "Settings" (gear icon) pe click karo.
+2. "Upload" tab pe jao.
+3. Neeche "Upload presets" section me "Add upload preset" pe click karo.
+4. "Signing Mode" me "Unsigned" select karo (important).
+5. "Preset name" me kuch likho, e.g. "nexora_admin".
+6. "Save" karo.
+7. Jo preset name diya (e.g. nexora_admin) us ko copy karo.
+
+STEP 4 – Admin project me .env banao
+-------------------------------------
+1. Nexora-admin folder me jao.
+2. .env.example file ko copy karke .env banao (ya nayi .env file banao).
+3. .env me ye daalo (apne values se replace karo):
+
+   VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+   VITE_CLOUDINARY_UPLOAD_PRESET=your_preset_name_here
+
+   Example:
+   VITE_CLOUDINARY_CLOUD_NAME=dxyz123abc
+   VITE_CLOUDINARY_UPLOAD_PRESET=nexora_admin
+
+4. File save karo.
+
+STEP 5 – Dev server restart karo
+---------------------------------
+1. Admin panel jo chal raha hai (npm run dev) use band karo (Ctrl+C).
+2. Phir dubara chalao: npm run dev
+3. Browser me http://localhost:3002/#/projects kholo.
+4. Project add karo aur "Choose file" se image select karke Save karo.
+   Ab image Cloudinary par upload hogi aur CORS error nahi aayega.
+
+============================================
+Done. Ab project/blog dono me file se image add ho jayegi bina CORS issue ke.
+============================================

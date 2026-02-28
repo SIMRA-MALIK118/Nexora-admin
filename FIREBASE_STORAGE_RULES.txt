@@ -1,0 +1,30 @@
+============================================
+  FIREBASE STORAGE RULES - Image upload fix
+============================================
+
+Agar admin panel me project/blog ki image add karte waqt "Uploading image..."
+atak jaye ya upload fail ho, to ye steps follow karein:
+
+1. Firebase Console kholen: https://console.firebase.google.com/
+2. Apna project select karein: "nexora-website-51e26"
+3. Left menu me "Storage" pe click karein
+4. Upar "Rules" tab pe jayein
+5. Neeche diye gaye rules copy karke wahan paste karein (purane rules replace karein)
+6. "Publish" button dabayein
+
+--- Copy from below this line ---
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+--- Copy till above this line ---
+
+Note: ye rules sabko read/write dete hain (testing ke liye theek hai).
+Production me baad me auth laga kar "allow read, write: if request.auth != null;"
+jaise rule use kar sakte ho.

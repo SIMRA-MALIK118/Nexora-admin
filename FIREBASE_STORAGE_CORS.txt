@@ -1,0 +1,36 @@
+============================================
+  CORS ERROR FIX – Image upload "blocked" / "Uploading..." atakna
+============================================
+
+CONSOLE ME YE ERROR KYU AA RAHA HAI (simple explanation):
+---------------------------------------------------------
+Browser ek rule follow karta hai: jo site (localhost:3002) se request ja rahi hai
+aur jo site (firebasestorage.googleapis.com) ko request receive karni hai – dono
+"different origin" hain. Is wajah se browser request block kar deta hai (CORS).
+Isliye image upload "Uploading image..." pe atak jati hai aur POST net::ERR_FAILED aata hai.
+
+FIX – Do options:
+-----------------
+
+OPTION A – Image URL use karein (turant kaam karega):
+  Admin panel me project form me ab "Or paste image URL" wala field hai.
+  Koi bhi direct image link (e.g. Imgur, Google Drive share link, ya kisi site ki
+  image ka direct URL) paste karein aur Save karein. Upload ki zaroorat nahi, image
+  website pe dikh jayegi.
+
+OPTION B – CORS fix karein (taaki "Choose file" bhi kaam kare):
+  1. Google Cloud SDK install karein (gsutil chahiye):
+     https://cloud.google.com/sdk/docs/install
+
+  2. Login:  gcloud auth login
+     Project set karein:  gcloud config set project nexora-website-51e26
+
+  3. Is folder me "cors.json" file hai. Same folder me terminal/CMD khol kar ye command chalaen:
+
+     gsutil cors set cors.json gs://nexora-website-51e26.firebasestorage.app
+
+  4. Browser me admin panel refresh karein aur phir "Choose file" se image add karke Save karein.
+
+Agar bucket name alag ho to Firebase Console → Storage → Files pe jao, bucket name wahan dikhega (e.g. nexora-website-51e26.firebasestorage.app).
+
+============================================

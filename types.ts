@@ -34,6 +34,8 @@ export interface TeamMember {
   role: string;
   bio?: string;
   imageUrl?: string;
+  skills?: string[];
+  funFact?: string;
   socialLinks?: {
     linkedin?: string;
     twitter?: string;

@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Filter, Loader2, CheckCircle2, User, Linkedin, Twitter, Github } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Filter, Loader2, CheckCircle2, User, Linkedin, Twitter, Github, Upload } from 'lucide-react';
 import { db } from '../../firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { TeamMember } from '../../types';
+import { isCloudinaryConfigured, uploadImageToCloudinary } from '../../services/cloudinaryUpload';
+
+// Normalize URL: add https:// if user entered www. or plain domain
+function normalizeUrl(value: string): string {
+    const v = (value || '').trim();
+    if (!v) return '';
+    if (/^https?:\/\//i.test(v)) return v;
+    return 'https://' + v.replace(/^\/+/, '');
+}
 
 const TeamList: React.FC = () => {
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>('');
 
     const [formData, setFormData] = useState<Omit<TeamMember, 'id'>>({
         name: '',
@@ -35,15 +47,38 @@ const TeamList: React.FC = () => {
         setIsSubmitting(true);
 
         try {
+            let imageUrl = formData.imageUrl;
+            if (imageFile) {
+                setIsUploadingImage(true);
+                try {
+                    imageUrl = isCloudinaryConfigured() ? await uploadImageToCloudinary(imageFile) : formData.imageUrl;
+                    if (!imageUrl && !formData.imageUrl) imageUrl = '';
+                } catch (err) {
+                    console.error(err);
+                    alert('Image upload failed. Paste image URL instead or set up Cloudinary.');
+                    setIsUploadingImage(false);
+                    return;
+                }
+                setIsUploadingImage(false);
+            }
+
+            const payload = {
+                name: formData.name,
+                role: formData.role,
+                bio: formData.bio,
+                imageUrl,
+                socialLinks: {
+                    linkedin: normalizeUrl(formData.socialLinks?.linkedin ?? ''),
+                    twitter: normalizeUrl(formData.socialLinks?.twitter ?? ''),
+                    github: normalizeUrl(formData.socialLinks?.github ?? '')
+                }
+            };
+
             if (editingId) {
-                // UPDATE
-                await updateDoc(doc(db, 'teamMembers', editingId), {
-                    ...formData
-                });
+                await updateDoc(doc(db, 'teamMembers', editingId), payload);
             } else {
-                // ADD
                 await addDoc(collection(db, 'teamMembers'), {
-                    ...formData,
+                    ...payload,
                     createdAt: serverTimestamp()
                 });
             }
@@ -51,6 +86,8 @@ const TeamList: React.FC = () => {
             await fetchMembers();
             setIsSidebarOpen(false);
             setEditingId(null);
+            setImageFile(null);
+            setImagePreview('');
             setFormData({
                 name: '',
                 role: '',
@@ -88,7 +125,13 @@ const TeamList: React.FC = () => {
                     <p className="text-sm text-gray-500 font-medium">Manage your team and their roles.</p>
                 </div>
                 <button
-                    onClick={() => setIsSidebarOpen(true)}
+                    onClick={() => {
+                        setFormData({ name: '', role: '', bio: '', imageUrl: '', socialLinks: { linkedin: '', twitter: '', github: '' } });
+                        setEditingId(null);
+                        setImageFile(null);
+                        setImagePreview('');
+                        setIsSidebarOpen(true);
+                    }}
                     className="bg-[#0d0d0d] text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-black/90 transition-all font-semibold shadow-sm active:scale-95 w-full sm:w-auto"
                 >
                     <Plus size={18} />
@@ -121,10 +164,12 @@ const TeamList: React.FC = () => {
                                             setFormData({
                                                 name: member.name,
                                                 role: member.role,
-                                                bio: member.bio,
-                                                imageUrl: member.imageUrl,
+                                                bio: member.bio ?? '',
+                                                imageUrl: member.imageUrl ?? '',
                                                 socialLinks: member.socialLinks || { linkedin: '', twitter: '', github: '' }
                                             });
+                                            setImageFile(null);
+                                            setImagePreview(member.imageUrl ?? '');
                                             setIsSidebarOpen(true);
                                         }}
                                         className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
@@ -199,13 +244,47 @@ const TeamList: React.FC = () => {
                                 <input required type="text" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="e.g. Product Manager" />
                             </div>
 
-                            {/* Profile Image */}
+                            {/* Profile Image - Choose file or paste URL */}
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Profile Image URL</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Profile Image</label>
+                                <p className="text-xs text-gray-500 mb-2">Choose file from desktop or paste URL below.</p>
+                                <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-black hover:bg-gray-50 transition-colors mb-2">
+                                    <Upload size={20} className="text-gray-500" />
+                                    <span className="text-sm font-medium text-gray-600">
+                                        {imageFile ? imageFile.name : 'Choose file...'}
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file && file.type.startsWith('image/')) {
+                                                setImageFile(file);
+                                                setImagePreview(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                        className="hidden"
+                                    />
+                                </label>
                                 <div className="relative">
                                     <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input type="url" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="https://..." />
+                                    <input
+                                        type="text"
+                                        value={formData.imageUrl}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, imageUrl: e.target.value });
+                                            if (!imageFile) setImagePreview(e.target.value);
+                                        }}
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium"
+                                        placeholder="Or paste image URL (https://... or www....)"
+                                    />
                                 </div>
+                                {imagePreview && (
+                                    <div className="mt-2 relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 border">
+                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" onError={() => setImagePreview('')} />
+                                        <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); setFormData(f => ({ ...f, imageUrl: '' })); }} className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-1"><X size={14} /></button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Bio */}
@@ -214,28 +293,29 @@ const TeamList: React.FC = () => {
                                 <textarea rows={3} value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium resize-none" placeholder="Short description..." />
                             </div>
 
-                            {/* Social Links */}
+                            {/* Social Links - text input so www. links work; we add https:// on save */}
                             <div className="space-y-3">
                                 <label className="block text-sm font-bold text-gray-700">Social Links (Optional)</label>
+                                <p className="text-xs text-gray-500 -mt-1 mb-1">You can enter www.linkedin.com/... or full https:// URL.</p>
                                 <div className="relative">
                                     <Linkedin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input type="url" value={formData.socialLinks?.linkedin} onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, linkedin: e.target.value } })} className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="LinkedIn URL" />
+                                    <input type="text" value={formData.socialLinks?.linkedin} onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, linkedin: e.target.value } })} className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="LinkedIn (e.g. www.linkedin.com/in/username)" />
                                 </div>
                                 <div className="relative">
                                     <Twitter size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input type="url" value={formData.socialLinks?.twitter} onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, twitter: e.target.value } })} className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="Twitter URL" />
+                                    <input type="text" value={formData.socialLinks?.twitter} onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, twitter: e.target.value } })} className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="Twitter URL" />
                                 </div>
                                 <div className="relative">
                                     <Github size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input type="url" value={formData.socialLinks?.github} onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, github: e.target.value } })} className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="GitHub URL" />
+                                    <input type="text" value={formData.socialLinks?.github} onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, github: e.target.value } })} className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="GitHub URL" />
                                 </div>
                             </div>
 
                             {/* Save Button */}
                             <div className="pt-8 space-y-4">
-                                <button disabled={isSubmitting} type="submit" className="w-full bg-[#0d0d0d] text-white py-4 rounded-xl font-bold hover:bg-black/90 transition-all shadow-xl flex items-center justify-center gap-2 disabled:opacity-70 active:scale-[0.98]">
-                                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />}
-                                    {isSubmitting ? 'Saving...' : editingId ? 'Update Member' : 'Save Member'}
+                                <button disabled={isSubmitting || isUploadingImage} type="submit" className="w-full bg-[#0d0d0d] text-white py-4 rounded-xl font-bold hover:bg-black/90 transition-all shadow-xl flex items-center justify-center gap-2 disabled:opacity-70 active:scale-[0.98]">
+                                    {(isSubmitting || isUploadingImage) ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />}
+                                    {isUploadingImage ? 'Uploading image...' : isSubmitting ? 'Saving...' : editingId ? 'Update Member' : 'Save Member'}
                                 </button>
                             </div>
                         </form>
